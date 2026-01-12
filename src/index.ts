@@ -1,12 +1,20 @@
-import { createServer } from './server';
+import express from 'express';
+import cors from 'cors';
+import route from './routes/route';
 
-// Run the application
-if (require.main === module) {
-  createServer().catch(console.error);
-}
+const app = express();
+const port = 3000;
 
-// Re-export types and services for external use
-export * from './types';
-export { MonitoringService } from './services/MonitoringService';
-export { PingService } from './services/PingService';
-export { FileStorageService } from './services/FileStorageService';
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+
+app.use('/api/v1', route);
+
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to the Elite Cron API' });
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port http://localhost:${port}`);
+});

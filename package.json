@@ -1,5 +1,5 @@
 {
-  "name": "aws-cron",
+  "name": "elite-cron",
   "version": "1.0.0",
   "description": "An Express + TypeScript backend with cron jobs for site monitoring",
   "main": "index.js",
@@ -7,9 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -b",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "server": "npm run dev",
-    "web": "cd web && npm run dev",
+    "dev": "nodemon --exec ts-node src/index.ts",
     "format": "prettier --write .",
     "check-format": "prettier --check ."
   },
@@ -34,6 +32,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/node-cron": "^3.0.11",
+    "nodemon": "^3.1.11",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.0",
     "typescript": "^5.9.2"
