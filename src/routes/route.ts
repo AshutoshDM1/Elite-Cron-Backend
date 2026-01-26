@@ -3,11 +3,10 @@ import urlRoutes from './url.routes';
 
 const router = Router();
 
+router.use('/url', urlRoutes);
+
 router.get('/', (req, res) => {
   res.status(200).json({ message: 'Welcome to the Elite Cron api/v1' });
 });
-
-// URL routes
-router.use('/urls', urlRoutes);
 
 export default router;

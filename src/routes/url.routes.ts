@@ -1,17 +1,12 @@
 import { Router } from 'express';
-import getAllUrlsRoute from './urls/get-all-urls.route';
-import getUrlByIdRoute from './urls/get-url-by-id.route';
-import createUrlRoute from './urls/create-url.route';
-import updateUrlRoute from './urls/update-url.route';
-import deleteUrlRoute from './urls/delete-url.route';
+import createUrlController from '../controllers/url-controllers/create-url-controller';
+import { validateSchema } from '../middleware/validate.middleware';
+import { createUrlValidation } from '../controllers/url-controllers/validation';
+import getUrlController from '../controllers/url-controllers/get-url-controller';
 
 const router = Router();
 
-// Combine all URL routes
-router.use('/', getAllUrlsRoute);
-router.use('/', getUrlByIdRoute);
-router.use('/', createUrlRoute);
-router.use('/', updateUrlRoute);
-router.use('/', deleteUrlRoute);
+router.post('/', validateSchema(createUrlValidation), createUrlController);
+router.get('/', getUrlController);
 
 export default router;
