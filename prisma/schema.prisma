@@ -19,3 +19,10 @@ model url {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model cron {
+  id        String   @id @default(uuid())
+  interval  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
