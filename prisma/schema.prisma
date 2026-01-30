@@ -14,15 +14,39 @@ datasource db {
 }
 
 model url {
-  id        String   @id @default(uuid())
-  url       String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String    @id @default(uuid())
+  url                 String
+  cronId              String    @unique
+  cron                cron      @relation(fields: [cronId], references: [id])
+  
+  status              String    @default("PENDING") // UP, DOWN, PENDING
+  
+  totalUpTime         Int       @default(0) // in seconds
+  totalDownTime       Int       @default(0) // in seconds
+  averageResponseTime Float     @default(0) // in milliseconds
+  
+  lastCheckedAt       DateTime?
+  
+  logs                log[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 model cron {
   id        String   @id @default(uuid())
   interval  String
+  url       url?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model log {
+  id           String   @id @default(uuid())
+  urlId        String
+  url          url      @relation(fields: [urlId], references: [id])
+  status       String
+  statusCode   Int
+  responseTime Int
+  createdAt    DateTime @default(now())
 }

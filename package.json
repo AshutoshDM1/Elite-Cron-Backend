@@ -11,8 +11,8 @@
     "format": "prettier --write .",
     "check-format": "prettier --check .",
     "export-swagger": "ts-node scripts/export-swagger.ts",
-    "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "gn": "prisma generate",
+    "ps": "prisma db push"
   },
   "keywords": [
     "cron",

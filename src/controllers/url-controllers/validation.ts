@@ -1,12 +1,13 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const createUrlValidation = z.object({
-    url: z.string().url().min(1).max(2048),
+  url: z.string().url().min(1).max(2048),
+  interval: z.string().min(1).max(100),
 });
 
 const getUrlValidationById = z.object({
-    id: z.string().uuid().min(1).max(2048),
-    url: z.string().url().min(1).max(2048),
+  id: z.string().uuid().min(1).max(2048),
+  url: z.string().url().min(1).max(2048),
 });
 
 export type CreateUrlInput = z.infer<typeof createUrlValidation>;
