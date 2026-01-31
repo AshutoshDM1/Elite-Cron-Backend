@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import urlRoutes from './url.routes';
 import cronRoutes from './cron.routes';
 
 const router = Router();
 
-router.use('/url', urlRoutes);
 router.use('/cron', cronRoutes);
 
 router.get('/', (req, res) => {
