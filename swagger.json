@@ -22,41 +22,20 @@
     {
       "name": "URLs",
       "description": "URL management endpoints"
+    },
+    {
+      "name": "Cron Jobs",
+      "description": "Cron job management endpoints"
     }
   ],
   "components": {},
   "paths": {
-    "/api/v1": {
-      "get": {
-        "summary": "Get API version information",
-        "tags": [
-          "General"
-        ],
-        "responses": {
-          "200": {
-            "description": "API version information",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Welcome to the Elite Cron api/v1"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/url": {
+    "/api/v1/cron": {
       "post": {
-        "summary": "Create a new URL",
+        "summary": "Create a new cron job",
+        "description": "Creates a new cron job with an associated URL to monitor",
         "tags": [
-          "URLs"
+          "Cron Jobs"
         ],
         "requestBody": {
           "required": true,
@@ -65,14 +44,24 @@
               "schema": {
                 "type": "object",
                 "required": [
+                  "interval",
                   "url"
                 ],
                 "properties": {
+                  "interval": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "example": "0 0 * * *",
+                    "description": "Cron expression or interval string (e.g., \"0 0 * * *\" for daily at midnight)"
+                  },
                   "url": {
                     "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
                     "format": "uri",
                     "example": "https://example.com",
-                    "description": "The URL to be created"
+                    "description": "The URL to monitor (must be a valid URL)"
                   }
                 }
               }
@@ -81,7 +70,7 @@
         },
         "responses": {
           "201": {
-            "description": "URL created successfully",
+            "description": "Cron job created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -93,7 +82,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "URL created successfully"
+                      "example": "Cron created successfully"
                     },
                     "statusCode": {
                       "type": "number",
@@ -107,9 +96,58 @@
                           "format": "uuid",
                           "example": "123e4567-e89b-12d3-a456-426614174000"
                         },
-                        "url": {
+                        "interval": {
                           "type": "string",
-                          "example": "https://example.com"
+                          "example": "0 0 * * *"
+                        },
+                        "url": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "example": "123e4567-e89b-12d3-a456-426614174001"
+                            },
+                            "url": {
+                              "type": "string",
+                              "example": "https://example.com"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "UP",
+                                "DOWN",
+                                "PENDING"
+                              ],
+                              "example": "PENDING"
+                            },
+                            "totalUpTime": {
+                              "type": "number",
+                              "example": 0
+                            },
+                            "totalDownTime": {
+                              "type": "number",
+                              "example": 0
+                            },
+                            "averageResponseTime": {
+                              "type": "number",
+                              "example": 0
+                            },
+                            "lastCheckedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
                         },
                         "createdAt": {
                           "type": "string",
@@ -127,7 +165,7 @@
             }
           },
           "400": {
-            "description": "Bad request",
+            "description": "Bad request - Invalid input or missing required fields",
             "content": {
               "application/json": {
                 "schema": {
@@ -139,7 +177,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Bad request - Invalid URL or missing required fields"
+                      "example": "Validation error"
                     },
                     "statusCode": {
                       "type": "number",
@@ -147,7 +185,7 @@
                     },
                     "error": {
                       "type": "string",
-                      "example": "Error message"
+                      "example": "Invalid interval or URL"
                     }
                   }
                 }
@@ -185,34 +223,14 @@
         }
       },
       "get": {
-        "summary": "Get a URL by ID",
+        "summary": "Get all cron jobs",
+        "description": "Retrieves a list of all cron jobs with their associated URLs",
         "tags": [
-          "URLs"
+          "Cron Jobs"
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "format": "uri",
-                    "example": "123e4567-e89b-12d3-a456-426614174000",
-                    "description": "The ID of the URL to be get"
-                  }
-                }
-              }
-            }
-          }
-        },
         "responses": {
-          "201": {
-            "description": "URL get successfully",
+          "200": {
+            "description": "Cron jobs retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -224,61 +242,85 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "URL get successfully"
+                      "example": "Cron found successfully"
                     },
                     "statusCode": {
                       "type": "number",
-                      "example": 201
+                      "example": 200
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid",
-                          "example": "123e4567-e89b-12d3-a456-426614174000"
-                        },
-                        "shortUrl": {
-                          "type": "string",
-                          "example": "https://example.com/123e4567-e89b-12d3-a456-426614174000"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "123e4567-e89b-12d3-a456-426614174000"
+                          },
+                          "interval": {
+                            "type": "string",
+                            "example": "0 0 * * *"
+                          },
+                          "url": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "example": "123e4567-e89b-12d3-a456-426614174001"
+                              },
+                              "url": {
+                                "type": "string",
+                                "example": "https://example.com"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "UP",
+                                  "DOWN",
+                                  "PENDING"
+                                ],
+                                "example": "PENDING"
+                              },
+                              "totalUpTime": {
+                                "type": "number",
+                                "example": 0
+                              },
+                              "totalDownTime": {
+                                "type": "number",
+                                "example": 0
+                              },
+                              "averageResponseTime": {
+                                "type": "number",
+                                "example": 0
+                              },
+                              "lastCheckedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
                         }
                       }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Bad request - Invalid ID or missing required fields"
-                    },
-                    "statusCode": {
-                      "type": "number",
-                      "example": 400
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Error message"
                     }
                   }
                 }
@@ -307,6 +349,235 @@
                     "error": {
                       "type": "string",
                       "example": "Error message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cron/{id}": {
+      "delete": {
+        "summary": "Delete a cron job by ID",
+        "description": "Deletes a cron job and its associated URL by ID",
+        "tags": [
+          "Cron Jobs"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "description": "The UUID of the cron job to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cron job deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cron deleted successfully"
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "123e4567-e89b-12d3-a456-426614174000"
+                        },
+                        "interval": {
+                          "type": "string",
+                          "example": "0 0 * * *"
+                        },
+                        "url": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "example": "123e4567-e89b-12d3-a456-426614174001"
+                            },
+                            "url": {
+                              "type": "string",
+                              "example": "https://example.com"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "UP",
+                                "DOWN",
+                                "PENDING"
+                              ],
+                              "example": "PENDING"
+                            },
+                            "totalUpTime": {
+                              "type": "number",
+                              "example": 0
+                            },
+                            "totalDownTime": {
+                              "type": "number",
+                              "example": 0
+                            },
+                            "averageResponseTime": {
+                              "type": "number",
+                              "example": 0
+                            },
+                            "lastCheckedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid UUID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Validation error"
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 400
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid UUID format"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cron job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cron job not found"
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 404
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Cron job with the specified ID does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    },
+                    "statusCode": {
+                      "type": "number",
+                      "example": 500
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1": {
+      "get": {
+        "summary": "Get API version information",
+        "tags": [
+          "General"
+        ],
+        "responses": {
+          "200": {
+            "description": "API version information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Welcome to the Elite Cron api/v1"
                     }
                   }
                 }

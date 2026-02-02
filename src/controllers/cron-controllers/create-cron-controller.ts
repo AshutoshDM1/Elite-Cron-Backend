@@ -6,8 +6,8 @@ import APIResponseType from '../../types/response.type';
 const createCronController = asyncHandler(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { interval } = req.body;
-
-    const newCron = await prisma.cron.create({ data: { interval } });
+    const { url } = req.body;
+    const newCron = await prisma.cron.create({ data: { interval, url: { create: { url } } } });
     res.status(201).json({
       success: true,
       message: 'Cron created successfully',

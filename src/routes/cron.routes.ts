@@ -6,7 +6,7 @@ import deleteCronController from '../controllers/cron-controllers/delete-cron-co
 import {
   createCronValidation,
   deleteCronValidationById,
-} from '../controllers/cron-controllers/validation';
+} from '../controllers/cron-controllers/cron.validation';
 
 const router = Router();
 

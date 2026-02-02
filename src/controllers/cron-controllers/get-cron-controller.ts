@@ -5,7 +5,11 @@ import APIResponseType from '../../types/response.type';
 
 const getCronController = asyncHandler(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const cronData = await prisma.cron.findMany();
+    const cronData = await prisma.cron.findMany({
+      include: {
+        url: true,
+      },
+    });
 
     res.status(200).json({
       success: true,

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const createCronValidation = z.object({
   interval: z.string().min(1).max(100),
+  url: z.string().url().min(1).max(100),
 });
 
 const deleteCronValidationById = z.object({

@@ -28,6 +28,10 @@ const swaggerDefinition: SwaggerDefinition = {
       name: 'URLs',
       description: 'URL management endpoints',
     },
+    {
+      name: 'Cron Jobs',
+      description: 'Cron job management endpoints',
+    },
   ],
   components: {},
 };
