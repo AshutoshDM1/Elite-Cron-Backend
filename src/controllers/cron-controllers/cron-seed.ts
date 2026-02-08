@@ -16,16 +16,16 @@ export const seedCronAndUrls = async () => {
     // Example seed data
     const cronData = [
       {
-        interval: '0 0 * * *', // every day at midnight
-        url: 'https://example.com',
+        interval: '*/1 * * * *', // every 1 minute (for testing)
+        url: 'https://www.google.com',
       },
       {
-        interval: '*/5 * * * *', // every 5 minutes (example only, backend may validate differently)
-        url: 'https://status.example.com',
+        interval: '*/2 * * * *', // every 2 minutes
+        url: 'https://www.github.com',
       },
       {
-        interval: '0 */1 * * *', // every hour
-        url: 'https://api.example.com/health',
+        interval: '*/3 * * * *', // every 3 minutes
+        url: 'https://httpbin.org/status/200',
       },
     ];
 

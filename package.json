@@ -12,7 +12,9 @@
     "check-format": "prettier --check .",
     "swagger:ex": "ts-node scripts/export-swagger.ts",
     "gen": "prisma generate",
-    "push": "prisma db push"
+    "push": "prisma db push",
+    "studio": "prisma studio",
+    "user": "ts-node scripts/user-cli.ts"
   },
   "keywords": [
     "cron",

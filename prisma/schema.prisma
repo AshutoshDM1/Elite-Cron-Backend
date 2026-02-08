@@ -19,13 +19,15 @@ model url {
   cronId              String    @unique
   cron                cron      @relation(fields: [cronId], references: [id], onDelete: Cascade)
   
-  status              String    @default("PENDING") // UP, DOWN, PENDING
+  status              String    @default("PENDING") // UP, DOWN, PENDING, ERROR
   
   totalUpTime         Int       @default(0) // in seconds
   totalDownTime       Int       @default(0) // in seconds
   averageResponseTime Float     @default(0) // in milliseconds
+  totalChecks         Int       @default(0) // total number of checks performed
   
   lastCheckedAt       DateTime?
+  lastStatus          String?   // Last check status for comparison
   
   logs                log[]
 
@@ -45,8 +47,25 @@ model log {
   id           String   @id @default(uuid())
   urlId        String
   url          url      @relation(fields: [urlId], references: [id], onDelete: Cascade)
-  status       String
-  statusCode   Int
-  responseTime Int
+  
+  status       String   // UP, DOWN, ERROR
+  statusCode   Int?     // HTTP status code (null if request failed)
+  responseTime Int?     // in milliseconds (null if request failed)
+  
+  errorMessage String?  // Error message if request failed
+  errorType    String?  // TIMEOUT, NETWORK_ERROR, DNS_ERROR, etc.
+  
+  headers      String?  // JSON string of response headers (optional)
+  
+  checkAt      DateTime @default(now()) // When the check was performed
   createdAt    DateTime @default(now())
+  
+  @@index([urlId, checkAt]) // Index for efficient querying
+}
+
+model User {
+  id String @id @default(uuid())
+  username String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

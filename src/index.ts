@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import route from './routes/route';
 import { setupSwagger } from './config/swagger.setup';
+import { initializeCronJobs, stopAllCronJobs } from './services/cron-scheduler.service';
 
 const app = express();
 const port = 3000;
@@ -11,7 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-username', 'X-Username'],
+  exposedHeaders: ['Content-Type', 'Authorization', 'x-username', 'X-Username'],
 }));
 
 // Setup Swagger documentation
@@ -23,8 +25,36 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1', route);
 
-app.listen(port, () => {
+const server = app.listen(port, async () => {
   console.log(`Server is running on port http://localhost:${port}`);
   console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
   console.log(`Swagger JSON spec available at http://localhost:${port}/api-docs.json`);
+  
+  // Initialize cron jobs after server starts
+  try {
+    console.log('\n=== Initializing Cron Scheduler ===');
+    await initializeCronJobs();
+    console.log('=== Cron Scheduler Initialized ===\n');
+  } catch (error) {
+    console.error('Failed to initialize cron jobs:', error);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n=== Shutting down gracefully ===');
+  stopAllCronJobs();
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n=== Shutting down gracefully ===');
+  stopAllCronJobs();
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });

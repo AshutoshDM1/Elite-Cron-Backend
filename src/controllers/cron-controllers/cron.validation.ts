@@ -9,7 +9,12 @@ const deleteCronValidationById = z.object({
   id: z.string().uuid(),
 });
 
+const getCronValidationById = z.object({
+  id: z.string().uuid(),
+});
+
 export type CreateCronInput = z.infer<typeof createCronValidation>;
 export type DeleteCronInputById = z.infer<typeof deleteCronValidationById>;
+export type GetCronInputById = z.infer<typeof getCronValidationById>;
 
-export { createCronValidation, deleteCronValidationById };
+export { createCronValidation, deleteCronValidationById, getCronValidationById };

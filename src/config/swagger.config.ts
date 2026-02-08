@@ -33,7 +33,21 @@ const swaggerDefinition: SwaggerDefinition = {
       description: 'Cron job management endpoints',
     },
   ],
-  components: {},
+  components: {
+    securitySchemes: {
+      UsernameAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-username',
+        description: 'Username for authentication',
+      },
+    },
+  },
+  security: [
+    {
+      UsernameAuth: [],
+    },
+  ],
 };
 
 const options: swaggerJsdoc.Options = {
