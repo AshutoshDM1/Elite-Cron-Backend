@@ -6,22 +6,49 @@ import { updateUrlStatistics } from './stats-updater.service';
 // Store scheduled tasks
 const scheduledTasks: Map<string, cron.ScheduledTask> = new Map();
 
+let executionHeaderPrinted = false;
+
 /**
  * Execute a single cron job: check URL and update statistics
  */
 async function executeCronJob(cronId: string, urlId: string, urlString: string): Promise<void> {
   try {
-    console.log(`[Cron Scheduler] Executing job for cron ${cronId} - ${urlString}`);
-
     // Check the URL and log result
     const result = await executeUrlCheck(urlId, urlString);
 
     // Update URL statistics
     await updateUrlStatistics(urlId, result);
 
-    console.log(`[Cron Scheduler] Job completed for cron ${cronId} - Status: ${result.status}`);
+    // Keep logs minimal and tabular: URL + computed status.
+    if (!executionHeaderPrinted) {
+      console.log('\n=== Cron Execution ===');
+      executionHeaderPrinted = true;
+    }
+
+    const displayUrl =
+      urlString.length > 67 ? `${urlString.slice(0, 67)}...` : urlString;
+
+    console.table([
+      {
+        url: displayUrl,
+        status: result.status,
+      },
+    ]);
   } catch (error) {
-    console.error(`[Cron Scheduler] Error executing job for cron ${cronId}:`, error);
+    // If something unexpected fails, still print URL + ERROR.
+    if (!executionHeaderPrinted) {
+      console.log('\n=== Cron Execution ===');
+      executionHeaderPrinted = true;
+    }
+    const displayUrl =
+      urlString.length > 67 ? `${urlString.slice(0, 67)}...` : urlString;
+
+    console.table([
+      {
+        url: displayUrl,
+        status: 'ERROR',
+      },
+    ]);
   }
 }
 
@@ -43,7 +70,6 @@ function scheduleCronJob(
 
     // If task already exists, stop it first
     if (scheduledTasks.has(cronId)) {
-      console.log(`[Cron Scheduler] Stopping existing task for cron ${cronId}`);
       const existingTask = scheduledTasks.get(cronId);
       existingTask?.stop();
       scheduledTasks.delete(cronId);
@@ -62,10 +88,56 @@ function scheduleCronJob(
     );
 
     scheduledTasks.set(cronId, task);
-    console.log(`[Cron Scheduler] Scheduled cron job ${cronId} with interval: ${interval}`);
     return true;
   } catch (error) {
     console.error(`[Cron Scheduler] Error scheduling cron job ${cronId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Schedule a cron job by its DB id (and its related URL).
+ * Used to update the running scheduler immediately on create/delete.
+ */
+export async function scheduleCronJobById(cronId: string): Promise<boolean> {
+  try {
+    const cronJob = await prisma.cron.findUnique({
+      where: { id: cronId },
+      include: { url: true },
+    });
+
+    if (!cronJob) {
+      console.warn(`[Cron Scheduler] scheduleCronJobById: cron not found: ${cronId}`);
+      return false;
+    }
+
+    if (!cronJob.url) {
+      console.warn(
+        `[Cron Scheduler] scheduleCronJobById: cron ${cronId} has no URL, skipping`
+      );
+      return false;
+    }
+
+    const scheduled = scheduleCronJob(
+      cronJob.id,
+      cronJob.url.id,
+      cronJob.url.url,
+      cronJob.interval
+    );
+
+    if (scheduled) {
+      console.log('\n=== Cron Scheduler ===');
+      console.table([
+        {
+          url: cronJob.url.url,
+          state: 'SCHEDULED',
+        },
+      ]);
+    }
+
+    return scheduled;
+  } catch (error) {
+    console.error(`[Cron Scheduler] Error scheduling cron job by id (${cronId}):`, error);
     return false;
   }
 }
@@ -78,7 +150,6 @@ export function stopCronJob(cronId: string): boolean {
   if (task) {
     task.stop();
     scheduledTasks.delete(cronId);
-    console.log(`[Cron Scheduler] Stopped cron job ${cronId}`);
     return true;
   }
   return false;
@@ -89,8 +160,6 @@ export function stopCronJob(cronId: string): boolean {
  */
 export async function initializeCronJobs(): Promise<void> {
   try {
-    console.log('[Cron Scheduler] Initializing cron jobs...');
-
     // Fetch all cron jobs with their URLs
     const cronJobs = await prisma.cron.findMany({
       include: {
@@ -98,9 +167,8 @@ export async function initializeCronJobs(): Promise<void> {
       },
     });
 
-    console.log(`[Cron Scheduler] Found ${cronJobs.length} cron job(s) in database`);
-
     let scheduledCount = 0;
+    const scheduledRows: Array<{ url: string; state: string }> = [];
 
     // Schedule each cron job
     for (const cronJob of cronJobs) {
@@ -118,12 +186,15 @@ export async function initializeCronJobs(): Promise<void> {
 
       if (success) {
         scheduledCount++;
+        scheduledRows.push({ url: cronJob.url.url, state: 'SCHEDULED' });
       }
     }
 
-    console.log(
-      `[Cron Scheduler] Successfully scheduled ${scheduledCount} out of ${cronJobs.length} cron job(s)`
-    );
+    if (scheduledRows.length > 0) {
+      console.log('\n=== Cron Scheduler ===');
+      console.table(scheduledRows);
+      console.log(`[Cron Scheduler] Scheduled ${scheduledCount} job(s)`);
+    }
   } catch (error) {
     console.error('[Cron Scheduler] Error initializing cron jobs:', error);
     throw error;
@@ -134,15 +205,11 @@ export async function initializeCronJobs(): Promise<void> {
  * Stop all scheduled cron jobs
  */
 export function stopAllCronJobs(): void {
-  console.log(`[Cron Scheduler] Stopping all ${scheduledTasks.size} cron job(s)...`);
-  
   scheduledTasks.forEach((task, cronId) => {
     task.stop();
-    console.log(`[Cron Scheduler] Stopped cron job ${cronId}`);
   });
-  
+
   scheduledTasks.clear();
-  console.log('[Cron Scheduler] All cron jobs stopped');
 }
 
 /**
@@ -168,7 +235,6 @@ export function getScheduledJobsStatus(): Array<{
  * Reload cron jobs from database (useful after adding/updating/deleting crons)
  */
 export async function reloadCronJobs(): Promise<void> {
-  console.log('[Cron Scheduler] Reloading cron jobs...');
   stopAllCronJobs();
   await initializeCronJobs();
 }

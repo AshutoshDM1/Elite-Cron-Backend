@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Elite Cron API",
+    "title": "Epicron API",
     "version": "1.0.0",
     "description": "An Express + TypeScript backend with cron jobs for site monitoring",
     "contact": {
@@ -34,19 +34,14 @@
       "post": {
         "summary": "Create a new cron job",
         "description": "Creates a new cron job with an associated URL to monitor",
-        "tags": [
-          "Cron Jobs"
-        ],
+        "tags": ["Cron Jobs"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "interval",
-                  "url"
-                ],
+                "required": ["interval", "url"],
                 "properties": {
                   "interval": {
                     "type": "string",
@@ -115,11 +110,7 @@
                             },
                             "status": {
                               "type": "string",
-                              "enum": [
-                                "UP",
-                                "DOWN",
-                                "PENDING"
-                              ],
+                              "enum": ["UP", "DOWN", "PENDING"],
                               "example": "PENDING"
                             },
                             "totalUpTime": {
@@ -225,9 +216,7 @@
       "get": {
         "summary": "Get all cron jobs",
         "description": "Retrieves a list of all cron jobs with their associated URLs",
-        "tags": [
-          "Cron Jobs"
-        ],
+        "tags": ["Cron Jobs"],
         "responses": {
           "200": {
             "description": "Cron jobs retrieved successfully",
@@ -277,11 +266,7 @@
                               },
                               "status": {
                                 "type": "string",
-                                "enum": [
-                                  "UP",
-                                  "DOWN",
-                                  "PENDING"
-                                ],
+                                "enum": ["UP", "DOWN", "PENDING"],
                                 "example": "PENDING"
                               },
                               "totalUpTime": {
@@ -362,9 +347,7 @@
       "delete": {
         "summary": "Delete a cron job by ID",
         "description": "Deletes a cron job and its associated URL by ID",
-        "tags": [
-          "Cron Jobs"
-        ],
+        "tags": ["Cron Jobs"],
         "parameters": [
           {
             "in": "path",
@@ -425,11 +408,7 @@
                             },
                             "status": {
                               "type": "string",
-                              "enum": [
-                                "UP",
-                                "DOWN",
-                                "PENDING"
-                              ],
+                              "enum": ["UP", "DOWN", "PENDING"],
                               "example": "PENDING"
                             },
                             "totalUpTime": {
@@ -564,9 +543,7 @@
     "/api/v1": {
       "get": {
         "summary": "Get API version information",
-        "tags": [
-          "General"
-        ],
+        "tags": ["General"],
         "responses": {
           "200": {
             "description": "API version information",
@@ -577,7 +554,7 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "example": "Welcome to the Elite Cron api/v1"
+                      "example": "Welcome to the Epicron api/v1"
                     }
                   }
                 }

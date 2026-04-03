@@ -6,7 +6,7 @@ import '../docs/swagger';
 const swaggerDefinition: SwaggerDefinition = {
   openapi: '3.0.0',
   info: {
-    title: 'Elite Cron API',
+    title: 'Epicron API',
     version: '1.0.0',
     description: 'An Express + TypeScript backend with cron jobs for site monitoring',
     contact: {
@@ -52,9 +52,7 @@ const swaggerDefinition: SwaggerDefinition = {
 
 const options: swaggerJsdoc.Options = {
   definition: swaggerDefinition,
-  apis: [
-    './src/docs/swagger/**/*.ts',
-  ],
+  apis: ['./src/docs/swagger/**/*.ts'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

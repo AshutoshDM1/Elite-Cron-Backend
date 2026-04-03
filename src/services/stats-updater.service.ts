@@ -30,7 +30,6 @@ export async function updateUrlStatistics(
     });
 
     if (!urlData) {
-      console.error(`[Stats Updater] URL not found: ${urlId}`);
       return;
     }
 
@@ -81,12 +80,6 @@ export async function updateUrlStatistics(
         updatedAt: now,
       },
     });
-
-    console.log(
-      `[Stats Updater] Updated stats for URL ${urlId}: ${result.status}, ` +
-      `Total Checks: ${urlData.totalChecks + 1}, ` +
-      `Avg Response: ${newAverageResponseTime.toFixed(2)}ms`
-    );
   } catch (error) {
     console.error(`[Stats Updater] Error updating statistics for URL ${urlId}:`, error);
     throw error;

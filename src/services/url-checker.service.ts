@@ -103,18 +103,13 @@ export async function executeUrlCheck(
   urlString: string
 ): Promise<UrlCheckResult> {
   try {
-    console.log(`[URL Checker] Checking URL: ${urlString}`);
-    
     const result = await checkUrl(urlString);
     
     // Log the result to database
     await logCheckResult(urlId, result);
-    
-    console.log(`[URL Checker] Result: ${result.status} - ${urlString} (${result.responseTime}ms)`);
-    
+
     return result;
   } catch (error) {
-    console.error(`[URL Checker] Error checking URL ${urlString}:`, error);
     throw error;
   }
 }

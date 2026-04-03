@@ -1,5 +1,5 @@
 {
-  "name": "elite-cron",
+  "name": "epicron-backend",
   "version": "1.0.0",
   "description": "An Express + TypeScript backend with cron jobs for site monitoring",
   "main": "index.js",
