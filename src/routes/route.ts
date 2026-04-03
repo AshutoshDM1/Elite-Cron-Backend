@@ -1,12 +1,10 @@
 import { Router } from 'express';
 import cronRoutes from './cron.routes';
+import { getHealthController } from '../controllers/health-controllers/get-health-controller';
 
 const router = Router();
 
 router.use('/cron', cronRoutes);
-
-router.get('/', (req, res) => {
-  res.status(200).json({ message: 'Welcome to the Elite Cron api/v1' });
-});
+router.get('/health', getHealthController);
 
 export default router;
