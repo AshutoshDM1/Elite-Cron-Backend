@@ -6,3 +6,5 @@ dist
 .env.test.local
 .env.production.local
 /src/generated/prisma
+
+/database-backups
