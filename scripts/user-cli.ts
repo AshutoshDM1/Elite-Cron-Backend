@@ -19,18 +19,32 @@ function question(query: string): Promise<string> {
 async function addUser() {
   try {
     const username = await question('Enter username: ');
+    const email = await question('Enter email: ');
 
     if (!username || username.trim().length === 0) {
       console.error('❌ Username cannot be empty');
       return;
     }
 
+    if (!email || email.trim().length === 0) {
+      console.error('❌ Email cannot be empty');
+      return;
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+    if (!emailOk) {
+      console.error('❌ Invalid email format');
+      return;
+    }
+
     const trimmedUsername = username.trim();
-    const user = await createUser(trimmedUsername);
+    const user = await createUser(trimmedUsername, trimmedEmail);
     
     console.log('\n✅ User created successfully!');
     console.log(`   ID: ${user.id}`);
     console.log(`   Username: ${user.username}`);
+    console.log(`   Email: ${user.email}`);
     console.log(`   Created: ${user.createdAt.toLocaleString()}\n`);
   } catch (error) {
     if (error instanceof Error) {
@@ -51,18 +65,19 @@ async function listUsers() {
     }
 
     console.log('\n📋 Users List:\n');
-    console.log('┌─────┬──────────────────────────────────────┬─────────────────────┬─────────────────────┐');
-    console.log('│ #   │ ID                                   │ Username            │ Created At          │');
-    console.log('├─────┼──────────────────────────────────────┼─────────────────────┼─────────────────────┤');
+    console.log('┌─────┬──────────────────────────────────────┬─────────────────────┬──────────────────────────────┬─────────────────────┐');
+    console.log('│ #   │ ID                                   │ Username            │ Email                        │ Created At          │');
+    console.log('├─────┼──────────────────────────────────────┼─────────────────────┼──────────────────────────────┼─────────────────────┤');
     
     users.forEach((user, index) => {
       const id = user.id.padEnd(36);
       const username = user.username.padEnd(19);
+      const email = (user.email ?? '').padEnd(28);
       const createdAt = user.createdAt.toLocaleDateString().padEnd(19);
-      console.log(`│ ${(index + 1).toString().padEnd(3)} │ ${id} │ ${username} │ ${createdAt} │`);
+      console.log(`│ ${(index + 1).toString().padEnd(3)} │ ${id} │ ${username} │ ${email} │ ${createdAt} │`);
     });
     
-    console.log('└─────┴──────────────────────────────────────┴─────────────────────┴─────────────────────┘\n');
+    console.log('└─────┴──────────────────────────────────────┴─────────────────────┴──────────────────────────────┴─────────────────────┘\n');
   } catch (error) {
     if (error instanceof Error) {
       console.error(`\n❌ Error: ${error.message}\n`);

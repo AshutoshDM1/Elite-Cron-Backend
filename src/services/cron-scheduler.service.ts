@@ -2,22 +2,74 @@ import cron from 'node-cron';
 import { prisma } from '../lib/prisma';
 import { executeUrlCheck } from './url-checker.service';
 import { updateUrlStatistics } from './stats-updater.service';
+import { sendEmail } from '../utils/resend';
 
 // Store scheduled tasks
 const scheduledTasks: Map<string, cron.ScheduledTask> = new Map();
 
 let executionHeaderPrinted = false;
 
+function isDownLike(status: string): boolean {
+  return status === 'DOWN' || status === 'ERROR';
+}
+
 /**
  * Execute a single cron job: check URL and update statistics
  */
 async function executeCronJob(cronId: string, urlId: string, urlString: string): Promise<void> {
   try {
+    // Get previous status + user email (for alerting)
+    const urlRecord = await prisma.url.findUnique({
+      where: { id: urlId },
+      include: {
+        cron: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    const previousStatus = urlRecord?.status ?? 'PENDING';
+
     // Check the URL and log result
     const result = await executeUrlCheck(urlId, urlString);
 
     // Update URL statistics
     await updateUrlStatistics(urlId, result);
+
+    // Send an alert only when the site transitions into DOWN/ERROR from a non-down state.
+    // This avoids sending on initial PENDING/UP and prevents repeat spam every cron tick.
+    if (urlRecord?.cron?.user?.email) {
+      const transitionedToDown =
+        isDownLike(result.status) && !isDownLike(String(previousStatus));
+
+      if (transitionedToDown) {
+        try {
+          await sendEmail({
+            to: urlRecord.cron.user.email,
+            subject: `💀 Website Down: ${urlString}`,
+            userName: urlRecord.cron.user.username,
+            userEmail: urlRecord.cron.user.email,
+            websiteUrl: urlString,
+            currentStatus: result.status,
+            lastCheckedAt: new Date().toISOString(),
+            lastStatus: previousStatus,
+            totalChecks: urlRecord.totalChecks,
+            averageResponseTimeMs: urlRecord.averageResponseTime,
+            totalUpTimeSeconds: urlRecord.totalUpTime,
+            totalDownTimeSeconds: urlRecord.totalDownTime,
+            cronInterval: urlRecord.cron.interval,
+            statusCode: result.statusCode ?? null,
+            responseTimeMs: result.responseTime ?? null,
+            errorType: result.errorType ?? null,
+            errorMessage: result.errorMessage ?? null,
+          });
+        } catch (e) {
+          console.error('[Email] Failed to send down alert:', e);
+        }
+      }
+    }
 
     // Keep logs minimal and tabular: URL + computed status.
     if (!executionHeaderPrinted) {

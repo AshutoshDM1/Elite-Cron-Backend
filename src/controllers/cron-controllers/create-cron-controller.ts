@@ -8,7 +8,29 @@ const createCronController = asyncHandler(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { interval } = req.body;
     const { url } = req.body;
-    const newCron = await prisma.cron.create({ data: { interval, url: { create: { url } } } });
+    const username = (req as any).username as string | undefined;
+
+    const user = username
+      ? await prisma.user.findUnique({ where: { username } })
+      : null;
+
+    if (!user) {
+      res.status(403).json({
+        success: false,
+        message: 'Invalid username. User not found.',
+        data: null,
+        statusCode: 403,
+      } as APIResponseType);
+      return;
+    }
+
+    const newCron = await prisma.cron.create({
+      data: {
+        interval,
+        user: { connect: { id: user.id } },
+        url: { create: { url } },
+      },
+    });
 
     const scheduled = await scheduleCronJobById(newCron.id);
     if (!scheduled) {
